@@ -1,15 +1,18 @@
-let WEATHER_API_KEY = "";
+// let WEATHER_API_KEY = "";
 
-fetch("./config.json")
-.then(response => response.json())
-.then(config => {
+// fetch("./config.json")
+// .then(response => response.json())
+// .then(config => {
 
-    WEATHER_API_KEY =
-    config.WEATHER_API_KEY;
+//     WEATHER_API_KEY =
+//     config.WEATHER_API_KEY;
     
-    getWeather();
-});
+//     getWeather();
+// });
 
+
+const WEATHER_API_KEY =
+import.meta.env.VITE_WEATHER_API_KEY;
 
 async function getWeather() {
    const result = document.getElementById('weatherResult');

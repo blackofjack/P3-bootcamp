@@ -5,12 +5,19 @@
 //         const genAI = new GoogleGenerativeAI(API_KEY);
 
 
-let API_URL = "";
-fetch("./config.json")
-.then(response => response.json())
-.then(config => {
-    API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${config.GEMINI_API_KEY}`;
-})
+// let API_URL = "";
+// fetch("./config.json")
+// .then(response => response.json())
+// .then(config => {
+//     API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${config.GEMINI_API_KEY}`;
+// })
+
+const GEMINI_API_KEY =
+import.meta.env.VITE_GEMINI_API_KEY;
+
+const API_URL =
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
+
 document.getElementById('sendBtn').addEventListener('click', async () => {
     const output = document.getElementById('response');
     const userInputField = document.getElementById('userInput');
