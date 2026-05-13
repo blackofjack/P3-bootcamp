@@ -1,13 +1,22 @@
-body {
-    margin: 0;
-    padding: 0;
-    height:100%;
-    overflow-x: hidden;
-    background: #4da3ff;
-    transition: background 0.6s ease;
-    
-  
+*{
+    box-sizing:border-box;
 }
+ html,
+body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+}
+ 
+ body{
+    width:100%;
+    margin:0 auto;
+    padding:0;
+    min-height:100vh;
+    overflow-x:hidden;
+    transition:background 0.6s ease;
+}
+    
 p,
 h1,
 h2,
@@ -29,9 +38,12 @@ h6 {
 .rain,
 .clouds,
 .default-weather{
-    background-repeat: no-repeat;
-    background-size: cover;
+    background-repeat:no-repeat;
+    background-size:cover;
+    background-position:center;
     min-height:100vh;
+    width:100%;
+    overflow-x:hidden;
 }
 
 p{
@@ -39,11 +51,11 @@ p{
 }
 
 .clear-day {
-    background: linear-gradient(to top, #56ccf2, #2f80ed);  
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);  
 }
 
 .clear-night {
-    background: linear-gradient(to top, #8db4fc, #243b55);
+    background: linear-gradient(135deg, #ebebeb 0%, #2c3e50 100%);
 }
 
 .rain {
@@ -51,11 +63,18 @@ p{
 }
 
 .clouds {
-    background: linear-gradient(to top, #f5f5ff, #2c3e50);
+    background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
 }
 
 .default-weather {
-    background: #222;
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+}
+
+.mood{
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 16px;
 }
 
 textarea {
@@ -72,9 +91,9 @@ textarea {
 .note-card p {
   white-space: pre-line; 
   text-align: center;
-  font-size: 2rem !important;
   letter-spacing: 0.1rem;
   margin:0;
+  font-size:1.5 rem;
 }
 
 
@@ -100,24 +119,23 @@ textarea {
 }
 
 .note-card {
+    width: 100%;
+    color: #fff;
+    flex: 1 1 260px;
+    padding: 20px;
     max-width: 100%;
     max-height: 100%;
-    width: 100%;
-    background-color: #333;
-    color: #fff;
-    padding: 20px;
+    position: relative;
     border-radius: 15px;
-    flex: 1 1 260px;
     margin-bottom: 15px;
     break-inside: avoid;
     box-sizing: border-box;
-
+    background-color: #333;
 }
 .notes-container{
     column-count: 4;
     column-gap: 20px;
     padding: 20px;
-
 }
 
 /* trial */
@@ -159,7 +177,7 @@ textarea {
     cursor: pointer;
     font-size: 18px;
     border-radius: 50%;
-    background: #3a3a3a;
+        background: #0082f5;
     transition: 0.3s ease;
     display: flex;
     justify-content: center;
@@ -177,6 +195,229 @@ textarea {
 }
 
 
-.note-card .delete-btn {
-    text-align: right;
+#aiBtn {
+    border-radius: 100%;
+    width:65px;
+    height:65px;
+    cursor: pointer;
+    border:0px;
+    background: linear-gradient(135deg, #ff9966 0%, #ffffff 100%);
+    box-shadow: -1px 2px 10px 0px rgb(148 148 148);
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    
+}
+
+
+
+ div#aiSection {
+    position: fixed;
+    right: 20px;
+    bottom: 100px;
+    width: 320px;
+    height: 500px;
+    background: linear-gradient(135deg, #ff7b00 0%, #ffffff 70%);
+    border-radius: 20px;
+    padding: 20px;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 9998;
+    display:none;
+
+}
+
+
+/* ai content */
+.ai-content{
+    width:100%;
+    max-width:380px;
+    height:80vh;
+    background:white;
+    border-radius:20px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+    padding:15px;
+}
+
+/* TITLE */
+.ai-content h1{
+    margin-bottom:15px;
+}
+
+/* CHAT BODY */
+.chat-body{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:15px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    border-radius:15px;
+    min-height:0;
+    scroll-behavior:smooth;
+    height:300px;
+}
+
+
+/* USER MESSAGE */
+
+.user-message{
+    align-self:flex-end;
+    background:#3b82f6;
+    color:white;
+    padding:10px 15px;
+    border-radius:18px 18px 0 18px;
+    max-width:75%;
+    margin-left:auto;
+    word-break:break-word;
+    overflow-wrap:break-word;
+    box-sizing:border-box;
+}
+/* .chat-body > *{
+    flex-shrink:0;
+} */
+
+/* AI MESSAGE */
+
+.ai-chat{
+    align-self:flex-start;
+    background:white;
+    padding:10px 15px;
+    border-radius:15px;
+    max-width:75%;
+    margin-right:auto;
+    word-break:break-word;
+    overflow-wrap:break-word;
+    white-space:pre-wrap;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    box-sizing:border-box;
+}
+
+/* INPUT AREA */
+
+.chat-input{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+    flex-shrink:0;
+}
+
+.hide-chat{
+    opacity:0;
+    transform:translateY(20px);
+    pointer-events:none;
+}
+
+
+
+
+/* INPUT */
+
+#userInput{
+    flex:1;
+    padding:12px;
+    border-radius:30px;
+    border:1px solid #ccc;
+    outline:none;
+}
+
+/* BUTTON */
+
+#sendBtn{
+    border:0;
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    background:#3b82f6;
+    color:white;
+    cursor:pointer;
+}
+
+.weather-status{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.mini-icon{
+    width:60px;
+    height:60px;
+}
+
+button.delete-btn {
+    background-color: transparent;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+
+
+
+@media(max-width:768px){
+
+    body{
+       margin:auto;
+    }
+
+    .note-card{
+        width:100%;
+    }
+
+    h1{
+        font-size:40px;
+    }
+
+}
+
+@media(max-width:600px){
+
+    body{
+        margin:auto;
+    }
+
+    .notes-container{
+        column-count:1;
+    }
+
+    .chat-input{
+        gap:8px;
+    }
+
+    #addBtn{
+        width:60px;
+        height:60px;
+    }
+
+    .note-card{
+        padding:25px 18px;
+    }
+
+    .weather-card{
+        padding:15px;
+    }
+
+    #weatherResult{
+       flex-direction: column;
+       gap:0;
+    }
+
+    #weatherResult, h1, h2{
+       margin:0;
+    }
+
+    #noteForm{
+        width: 100%;
+    }
+
+    .section{
+        margin:10px;
+    }
+
 }

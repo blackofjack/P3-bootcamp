@@ -1,49 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet"href="./style.css">    
-    <script type="module"  src="./script.mjs" defer></script>
-     <script type="module" src="./weathertoday.js" defer></script>
-     <script src="./posting.js" defer></script>
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <title>EchoWall</title>
+    <link rel="stylesheet" href="./style.css">
+    <script type="module" src="./script.js" defer></script>
+    <script type="module" src="./weathertoday.js" defer></script>
+    <script type="module" src="./posting.js" defer></script>
+    <script src="./toggle.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet">
 
-     <nav>
-        <div id="weatherResult"></div></nav>
+    <nav>
+        <div id="weatherResult"></div>
+    </nav>
 </head>
+
 <body>
-<div class="section">
-    <h1>No Names Just Mind</h1>
-    <form id="noteForm">
-        <textarea id="noteInput" placeholder="Write something..."></textarea>
-        <button id="btn" type="submit">+</button>
-    </form>
-</div>
+    <div class="section">
+        <h1>Echo Your Mind</h1>
+        <form id="noteForm">
+            <textarea id="noteInput" placeholder="Write something..."></textarea>
+            <button id="btn" type="submit">+</button>
+        </form>
+    </div>
     <div class="notes-container">
         <div class="note-card">Short note...</div>
 
-    <div class="note-card">
-        Very very very long content here...
+        <div class="note-card">
+            Very very very long content here...
+        </div>
+
+        <div class="note-card">Another note...</div>
+
+        <div class="note-card">
+            Extra content<br>
+            Extra content<br>
+            Extra content
+        </div>
     </div>
 
-    <div class="note-card">Another note...</div>
 
-    <div class="note-card">
-        Extra content<br>
-        Extra content<br>
-        Extra content
+    <!--later-->
+    <div class="ai-section">
+        <div class="ai-content" id="aiSection">
+            <h1>Talk with bubuy</h1>
+            <!-- CHAT BODY -->
+            <div id="response" class="chat-body">
+                <div class="ai-chat">Hello! How can I help you today?
+                </div>
+            </div>
+            <!-- INPUT AREA -->
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Ask something...">
+                <button id="sendBtn">
+                    Ask AI
+                </button>
+            </div>
+        </div>
+
+        <button  id="aiBtn">Bubuy</button>
     </div>
-    </div>
-
-
-<!--later-->
-<div id="ai-response"></div>
 
 
 
 </body>
+
 </html>
