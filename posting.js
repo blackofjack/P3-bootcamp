@@ -1,184 +1,261 @@
-let API_URL = "";
+const form = document.querySelector("form");
+const textarea = document.getElementById("noteInput");
+const container = document.querySelector(".notes-container");
+const submitBtn = form?.querySelector('button[type="submit"]');
+const API_ENDPOINT = "/.netlify/functions/match";
 
-async function loadConfig(){
+const MOOD_STYLES = {
+    happy: {
+        mood: "\u{1F60A} Happy",
+        color: "#FFE082"
+    },
+    sad: {
+        mood: "\u{1F622} Sad",
+        color: "#90CAF9"
+    },
+    angry: {
+        mood: "\u{1F621} Angry",
+        color: "#EF9A9A"
+    },
+    neutral: {
+        mood: "\u{1F610} Neutral",
+        color: "#333333"
+    }
+};
+const FALLBACK_MOOD = MOOD_STYLES.neutral;
 
-    const response =
-    await fetch("./config.json");
+let notes = [];
 
-    const config =
-    await response.json();
-
-    API_URL =
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${config.GEMINII_API_KEY}`;
-
+function loadNotes() {
+    try {
+        return JSON.parse(localStorage.getItem("notes")) || [];
+    } catch (error) {
+        console.error("Failed to load notes:", error);
+        return [];
+    }
 }
 
-loadConfig();
+function saveNotes() {
+    localStorage.setItem("notes", JSON.stringify(notes));
+}
 
-const form = document.querySelector('form');
-const textarea = document.getElementById('noteInput');
-const container = document.querySelector('.notes-container');
+function parseMoodResponse(rawText) {
+    const cleanedText = rawText
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/, "");
 
-let notes = JSON.parse(localStorage.getItem('notes')) || [];
+    return JSON.parse(cleanedText);
+}
 
-//test about mood detect 
+function buildMoodPrompt(text) {
+    return `
+Detect the mood of this message.
+
+Return JSON only in this exact shape:
+{"mood":"Happy","color":"#FFE082"}
+
+Example:
+{
+  "mood": "Happy",
+  "color": "#FFE082"
+}
+
+Allowed moods and colors:
+Happy -> #FFE082
+Sad -> #90CAF9
+Angry -> #EF9A9A
+Neutral -> #333333
+
+Choose the closest single mood from the list.
+
+Message:
+"${text}"
+`;
+}
+
+function extractModelText(data) {
+    return data?.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text)
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+}
+
+function normalizeDetectedMood(parsedMood) {
+    const moodValue = String(parsedMood?.mood || "").toLowerCase();
+    let preset = FALLBACK_MOOD;
+
+    if (moodValue.includes("happy")) {
+        preset = MOOD_STYLES.happy;
+    } else if (moodValue.includes("sad")) {
+        preset = MOOD_STYLES.sad;
+    } else if (moodValue.includes("angry")) {
+        preset = MOOD_STYLES.angry;
+    }
+
+    const colorValue = String(parsedMood?.color || "").trim();
+    const isHexColor = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(colorValue);
+
+    return {
+        mood: preset.mood,
+        color: isHexColor ? colorValue : preset.color
+    };
+}
+
 async function detectMood(text) {
-try{
-    const response = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=url',
-        {
-        method: 'POST',
-
+    try {
+        const response = await fetch(API_ENDPOINT, {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json"
             },
-
             body: JSON.stringify({
-                contents: [
-                    {
-                        parts: [
-                            {
-                                text: `
-                                Detect the mood of this message.
-
-                                Return JSON only.
-
-                                Example:
-                                {
-                                  "mood": "😊 Happy",
-                                  "color": "#FFE082"
-                                }
-
-                                Mood options:
-                                😊 Happy
-                                😢 Sad
-                                😡 Angry
-                                😐 Neutral
-
-                                Message:
-                                "${text}"
-                                `
-                            }
-                        ]
-                    }
-                ]
+                prompt: buildMoodPrompt(text)
             })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data?.error || `API request failed: ${response.status}`);
         }
-    );
-        const data = await response.json();
 
-    const result =
-        data.candidates[0].content.parts[0].text;
+        const result = extractModelText(data);
 
-    return JSON.parse(result);
+        if (!result) {
+            throw new Error("No response received from Gemini");
+        }
 
-} catch (error) {
+        const parsedMood = parseMoodResponse(result);
 
-        console.log(error);
+        return normalizeDetectedMood(parsedMood);
+    } catch (error) {
+        console.error("Mood detection failed:", error);
+        return { ...FALLBACK_MOOD };
+    }
+}
 
+function normalizeNote(note) {
+    if (typeof note === "string") {
         return {
-            mood: '😐 Neutral',
-            color: '#333'
+            text: note,
+            mood: FALLBACK_MOOD.mood,
+            color: FALLBACK_MOOD.color
         };
-
     }
-    
 
+    return {
+        text: note?.text || "",
+        mood: note?.mood || FALLBACK_MOOD.mood,
+        color: note?.color || FALLBACK_MOOD.color
+    };
 }
 
-//end of mood detect
-
-// render notes
 function renderNotes() {
-  container.innerHTML = '';
+    container.replaceChildren();
 
-  notes.forEach((note, index) => {
-    const card = document.createElement('div');
-    card.className = 'note-card';
+    notes.forEach((note, index) => {
+        const normalizedNote = normalizeNote(note);
+        const card = document.createElement("div");
+        const deleteBtn = document.createElement("button");
+        const mood = document.createElement("p");
+        const text = document.createElement("p");
 
-    card.innerHTML = `
-    <button data-index="${index}" class="delete-btn">📌</button>
-    <p class="mood">${note.mood || '😐 Neutral'}</p>
-    <p>${(note.text || note).replace(/\n/g, '<br>')}</p>
-    `;
+        card.className = "note-card";
+        card.style.backgroundColor = normalizedNote.color;
 
-    container.appendChild(card);
-  });
+        deleteBtn.type = "button";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.dataset.index = String(index);
+        deleteBtn.textContent = "\u{1F4CC}";
+
+        mood.className = "mood";
+        mood.textContent = normalizedNote.mood;
+
+        text.textContent = normalizedNote.text;
+
+        card.append(deleteBtn, mood, text);
+        container.appendChild(card);
+    });
 }
 
-// add note
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const value = textarea.value.trim();
-  if (!value) return;
-
-  // notes.unshift(value);
-
-const detected = await detectMood(value);
-
-notes.unshift({
-    text: value,
-    mood: detected.mood,
-    color: detected.color
-});
-
-  localStorage.setItem('notes', JSON.stringify(notes));
-
-  textarea.value = '';
-  textarea.style.height = 'auto';
-  renderNotes();
-});
-
-// delete note
-container.addEventListener('click', (e) => {
-  if (e.target.classList.contains('delete-btn')) {
-    const index = e.target.dataset.index;
-
-    notes.splice(index, 1);
-
-    localStorage.setItem('notes', JSON.stringify(notes));
-    renderNotes();
-  }
-});
-
-
-textarea.addEventListener('input', () => {
-  textarea.style.height = 'auto';
-  textarea.style.height = textarea.scrollHeight + 'px';
-});
-
-// initial load
-renderNotes();
-
-
-// masonary
 function updateMasonry() {
-
-    const container =
-        document.querySelector('.notes-container');
-
-    if(window.innerWidth < 600){
-
+    if (window.innerWidth < 600) {
         container.style.columnCount = 1;
-
-    }
-    else if(window.innerWidth < 900){
-
+    } else if (window.innerWidth < 900) {
         container.style.columnCount = 2;
-
-    }
-    else{
-
+    } else {
         container.style.columnCount = 4;
-
     }
-
 }
 
-window.addEventListener('resize', updateMasonry);
-updateMasonry();
+if (!form || !textarea || !container) {
+    console.error("Notes UI could not be initialized.");
+} else {
+    notes = loadNotes();
 
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
+        const value = textarea.value.trim();
 
-//hide section
+        if (!value) {
+            textarea.focus();
+            return;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
+
+        try {
+            const detectedMood = await detectMood(value);
+
+            notes.unshift({
+                text: value,
+                mood: detectedMood.mood,
+                color: detectedMood.color
+            });
+
+            saveNotes();
+            textarea.value = "";
+            textarea.style.height = "auto";
+            renderNotes();
+        } catch (error) {
+            console.error("Failed to save note:", error);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+        }
+    });
+
+    container.addEventListener("click", (event) => {
+        if (!event.target.classList.contains("delete-btn")) {
+            return;
+        }
+
+        const index = Number(event.target.dataset.index);
+
+        if (Number.isNaN(index)) {
+            return;
+        }
+
+        notes.splice(index, 1);
+        saveNotes();
+        renderNotes();
+    });
+
+    textarea.addEventListener("input", () => {
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
+    });
+
+    window.addEventListener("resize", updateMasonry);
+
+    (function init() {
+        renderNotes();
+        updateMasonry();
+    })();
+}
